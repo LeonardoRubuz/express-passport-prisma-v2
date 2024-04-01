@@ -4,6 +4,7 @@ const passport = require('passport');
 const bcrypt = require('bcrypt');
 const passportLocal = require('passport-local');
 const usersRouter = require("./routes/users");
+const authRouter = require("./routes/auth");
 const ordinateursRouter = require("./routes/ordinateurs");
 const prisma = require("./db/prisma");
 
@@ -27,7 +28,7 @@ passport.use(new LocalStrategy({ usernameField : "email", passwordField : "passw
       }
     });
 
-    if (!user) {  // Si l'utilisateur n'est pas trouver on renvoie le vide
+    if (!user) {  // Si l'utilisateur n'est pas trouvé on renvoie le vide
       return done(null, false)
     }
 
@@ -46,10 +47,23 @@ passport.use(new LocalStrategy({ usernameField : "email", passwordField : "passw
 }))
 
 
+// Extraire  l'id du user et l'injecter dans request
+passport.serializeUser((user, done) => {
+  done(null, user.id)
+})
+
+// Extraire l'entité et l'injecter dans request
+passport.deserializeUser((user, done) => {
+  done(null, user)
+})
+
+server.use(passport.initialize)
+
 
 server.get("/", (req, res) => {
   res.send("DEV WEB C3");
 });
+server.use('/auth')
 server.use("/users", usersRouter);
 server.use("/ordinateurs", ordinateursRouter);
 
